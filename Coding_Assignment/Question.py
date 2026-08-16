@@ -1,15 +1,26 @@
-def monitor_following_distance(distances: list[float], speeds: list[float]) -> tuple[int, float, int]:
-    """
-    Analyzes following distance compared to safe distance (speed * 0.5).
-    
-    Args:
-        distances (list[float]): Distance to the lead car at each second.
-        speeds (list[float]): Speed of our car at each second.
+import test_following_distance.py 
+import math
+
+
+def monitor_following_distance(distances: list[float], speeds: list[float]) 
+        avrg_speed = (speeds[0] + speeds[1] + speeds[2] + speeds[3] + speeds[4])/5
+        safe_dist = avrg_speed*0.5
+
+        count = 0
+        tailgate_dist = set()
         
-    Returns:
-        tuple[int, float, int]: (tailgating_seconds, minimum_distance, tailgate_incidents)
-            - tailgating_seconds: total seconds distance was < safe distance
-            - minimum_distance: absolute closest distance to the lead car (return 0.0 if empty list)
-            - tailgate_incidents: number of separate instances the car started tailgating
-    """
-    pass
+        for n in distances :
+            if n < safe_dist:
+                count += 1
+                tailgate_dist.add(n)
+            else:
+                pass
+
+        tailgate_dist = sorted(tailgate_dist)
+        tailgating_sec = count 
+        min_dist = tailgate_dist[0]
+        tailgate_inc = len(tailgate_dist)
+    
+        result = (tailgating_sec , min_dist , tailgate_inc)
+    return results 
+
