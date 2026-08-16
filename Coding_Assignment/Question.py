@@ -20,7 +20,7 @@ def monitor_following_distance(distances: list[float], speeds: list[float]) :
         min_dist = tailgate_dist[0]
         tailgate_inc = len(tailgate_dist)
     
-        result = (tailgating_sec , min_dist , tailgate_inc)
+        results = (tailgating_sec , min_dist , tailgate_inc)
     return results 
 
 print (monitor_following_distance(distances: list[float], speeds: list[float]))
