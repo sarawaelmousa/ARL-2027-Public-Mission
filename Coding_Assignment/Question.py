@@ -1,7 +1,7 @@
 import math
 
 def monitor_following_distance(distances: list[float], speeds: list[float]) :
-        avrg_speed = (speeds[0] + speeds[1] + speeds[2] + speeds[3] + speeds[4])/5
+        avrg_speed = sum (speeds) / len(speeds)
         safe_dist = avrg_speed*0.5
 
         count = 0                # counter to get the seconds
