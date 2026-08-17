@@ -42,6 +42,6 @@ def monitor_following_distance(distances, speeds):
     
     
     results = (tailgating_sec, min_dist, tailgate_inc)
-   # print (results)
+    print (results)
 
     return results
