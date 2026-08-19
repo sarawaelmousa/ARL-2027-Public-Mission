@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/rover_safety_monitor.dir/main.cpp.o CMakeFiles/rover_safety_monitor.dir/src/safety_monitor.cpp.o -o rover_safety_monitor 

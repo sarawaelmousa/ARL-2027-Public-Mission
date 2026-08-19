@@ -1,0 +1,94 @@
+#include "safety_monitor.hpp"
+
+#include <cmath>
+
+namespace arl {
+namespace {
+
+bool isFinite(const Detection& detection) {
+    return std::isfinite(detection.forward)
+        && std::isfinite(detection.left)
+        && std::isfinite(detection.confidence);
+}
+
+}  // namespace
+
+std::vector<Obstacle> processDetections(
+    const std::vector<Detection>& detections,
+    const RoverPose& pose,
+    const SafetyConfig& config) {
+    std::vector<Obstacle> obstacles;
+    //const double headingRadians = pose.headingDegrees; 4th error we cannot use the rad=degree
+    const double headingRadians =
+    pose.headingDegrees * std::acos(-1.0) / 180.0;
+    const double cosine = std::cos(headingRadians);
+    const double sine = std::sin(headingRadians);
+
+    for (std::size_t index = 0; index < detections.size(); ++index) {  //2nd logical error :passing obstacle 
+        const auto& detection = detections[index];
+        const double range = std::hypot(detection.forward, detection.left);
+        const bool validConfidence =   //1st logic error : confidence issue
+            detection.confidence >= config.minimumConfidence
+            && detection.confidence <= 1.0;
+        const bool validRange = range > 0.0 && range <= config.maximumRangeMeters;
+
+        if (!isFinite(detection) || !validConfidence || !validRange) {
+            continue;
+        }
+
+        obstacles.push_back({
+            detection.id,
+            detection.forward,
+            detection.left,
+            pose.worldX + cosine * detection.forward - sine * detection.left, //5th error the rover is adding the value {misconception} 
+            pose.worldY + sine * detection.forward + cosine * detection.left,
+            range,
+        });
+    }
+
+    return obstacles;
+}
+
+std::optional<Obstacle> findNearestObstacle(const std::vector<Obstacle>& obstacles) {
+    if (obstacles.empty()) {
+        return std::nullopt;
+    }
+
+    const Obstacle* nearest = &obstacles.front();
+    for (const auto& obstacle : obstacles) {
+        if (obstacle.range < nearest->range) {  //3rd error : wrong logical comparison
+            nearest = &obstacle;
+        }
+    }
+
+    return *nearest;
+}
+
+double calculateStoppingDistance(double speedKph, const SafetyConfig& config) {
+   // const double speedMps = speedKph; 6th error how can m/s = km/hr? logical error
+    const double speedMps = speedKph / 3.6;
+    const double reactionDistance = speedMps * config.reactionTimeSeconds;
+    const double brakingDistance = speedMps * speedMps
+        / (2.0 * config.maximumDecelerationMps2);
+    return reactionDistance + brakingDistance;
+}
+
+bool shouldEmergencyBrake(const std::vector<Obstacle>& obstacles, double speedKph, const SafetyConfig& config) {
+    //7th error: missing logic the rover will never give an emergency braking mode ever
+
+    const double stoppingDistance =
+        calculateStoppingDistance(speedKph, config);
+
+    for (const auto& obstacle : obstacles) {
+
+        if (obstacle.forward >= 0.0  //if any obstacles in front of rover including exactly 0m forward
+            && std::abs(obstacle.left) <= config.laneHalfWidthMeters
+            && obstacle.forward <= stoppingDistance) {
+
+            return true;
+        }
+    }
+    return false;
+}
+
+}  // namespace arl
